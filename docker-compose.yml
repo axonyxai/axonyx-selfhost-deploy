@@ -1,0 +1,50 @@
+# Axonyx self-host (deploy). One stack: self-hosted Supabase + Axonyx dashboard +
+# single-tenant proxy. Pulls prebuilt images from GHCR — no source needed.
+# Requires Docker Compose v2.20+ (for `include`). Config is one top-level `.env`.
+#
+#   docker compose up -d              # Supabase + dashboard + proxy
+#   docker compose run --rm migrate   # apply the product schema (once)
+name: axonyx-selfhost
+
+include:
+  - supabase/docker-compose.yml
+
+services:
+  frontend:
+    image: ghcr.io/axonyxai/axonyx-frontend:latest
+    pull_policy: always
+    environment:
+      VITE_SUPABASE_URL: ${SUPABASE_PUBLIC_URL}
+      VITE_SUPABASE_ANON_KEY: ${ANON_KEY}
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+    restart: unless-stopped
+
+  proxy:
+    image: ghcr.io/axonyxai/axonyx-proxy:latest
+    pull_policy: always
+    environment:
+      SUPABASE_URL: http://kong:8000
+      SUPABASE_SERVICE_ROLE_KEY: ${SERVICE_ROLE_KEY}
+      PROXY_API_KEY: ${PROXY_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      PORT: "9999"
+    ports:
+      - "${PROXY_PORT:-9999}:9999"
+    depends_on:
+      - kong
+    restart: unless-stopped
+
+  # One-shot: apply the product schema. Not started by `up` (profile: tools).
+  #   docker compose run --rm migrate
+  migrate:
+    image: ghcr.io/axonyxai/axonyx-db-migrate:latest
+    pull_policy: always
+    profiles: ["tools"]
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+    command: ["${POSTGRES_HOST:-db}", "${POSTGRES_PORT:-5432}", "${POSTGRES_DB:-postgres}"]
+    restart: "no"
