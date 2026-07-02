@@ -50,6 +50,13 @@ docker compose run --rm migrate
 - **Supabase Studio** `http://YOUR_HOST:8000` (`supabase` / `DASHBOARD_PASSWORD`) — create an auth user, or use the dashboard sign-up.
 - **Dashboard** `http://YOUR_HOST:3000` — sign in; configure applications (proxy keys + rule profiles), approved AI models, DLP/detection.
 
+> **Accessing from other machines.** Open the dashboard by the host's real name/IP —
+> `http://YOUR_HOST:3000`, **not** `localhost`. The dashboard auto-derives the Supabase API host
+> from the URL you loaded it under, so remote browsers call `http://YOUR_HOST:8000` (not their own
+> localhost). Open **3000/8000/9999** in the host firewall. For a fixed hostname or TLS, set
+> `SUPABASE_PUBLIC_URL` explicitly; if you use email confirmation or Microsoft sign-in also set
+> `SITE_URL=http://YOUR_HOST:3000` (+ `ADDITIONAL_REDIRECT_URLS`) so auth links don't bounce to localhost.
+
 > **Email sign-up works out of the box.** OAuth providers are **off by default** — the
 > dashboard's "Sign in with Microsoft" returns *"provider is not enabled"* until you turn it on.
 
@@ -73,6 +80,24 @@ POST http://YOUR_HOST:9999/v1/chat/completions
 Authorization: Bearer <an application key, or PROXY_API_KEY>
 ```
 Governed (DLP, prompt-injection, model routing) and logged to `ai_runs`, shown in the dashboard.
+
+## Licensing / trial
+Every deployment runs a **60-day trial** from first boot. Sign-in is always required; when the
+trial (or its license) lapses the **proxy returns HTTP 403** on all AI traffic (`/health` and
+`/license/status` stay open). Check status:
+```bash
+curl http://YOUR_HOST:9999/license/status
+```
+To **extend or remove** the trial, Axonyx issues a signed license from the platform console
+(issue / extend / revoke). Paste it into `.env` and restart the proxy:
+```bash
+# in .env
+AXONYX_LICENSE=<token from Axonyx>
+docker compose up -d proxy
+```
+The token is ed25519-signed and product-bound (can't be forged or reused across products); the
+trial clock lives in your own database so a restart won't reset it. Set `AXONYX_CHECKIN_URL` to
+let Axonyx track/revoke this instance, or leave it blank to stay air-gapped.
 
 ## Operations
 ```bash
