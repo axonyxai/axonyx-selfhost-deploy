@@ -62,6 +62,7 @@ Governed (DLP, prompt-injection, model routing) and logged to `ai_runs`, shown i
 docker compose pull && docker compose up -d   # update to latest images
 docker compose logs -f frontend proxy
 docker compose down          # stop (keeps DB in ./supabase/volumes/db/data)
-docker compose down -v       # stop + wipe all data
+# Full reset — the database is a BIND MOUNT, so `down -v` does NOT wipe it:
+docker compose down && sudo rm -rf ./supabase/volumes/db/data && mkdir -p ./supabase/volumes/db/data
 ```
 Back up `./supabase/volumes/db/data`.
