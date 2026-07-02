@@ -50,6 +50,23 @@ docker compose run --rm migrate
 - **Supabase Studio** `http://YOUR_HOST:8000` (`supabase` / `DASHBOARD_PASSWORD`) — create an auth user, or use the dashboard sign-up.
 - **Dashboard** `http://YOUR_HOST:3000` — sign in; configure applications (proxy keys + rule profiles), approved AI models, DLP/detection.
 
+> **Email sign-up works out of the box.** OAuth providers are **off by default** — the
+> dashboard's "Sign in with Microsoft" returns *"provider is not enabled"* until you turn it on.
+
+### Enable "Sign in with Microsoft" (Entra ID)
+1. In **Entra ID → App registrations → New registration**. Add a **Web** redirect URI:
+   `http://YOUR_HOST:8000/auth/v1/callback` (use `https://…` if you front it with TLS).
+2. Create a **client secret**; note the **Application (client) ID** + secret **value**.
+3. In `.env` set:
+   ```
+   AZURE_ENABLED=true
+   AZURE_CLIENT_ID=<application-client-id>
+   AZURE_SECRET=<client-secret-value>
+   # single-tenant only (restrict to your org):
+   # AZURE_URL=https://login.microsoftonline.com/<tenant-id>/v2.0
+   ```
+4. `docker compose up -d auth` (recreates the auth container with the new env).
+
 ## 7. Send AI traffic through the proxy
 ```
 POST http://YOUR_HOST:9999/v1/chat/completions

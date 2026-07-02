@@ -192,10 +192,13 @@ services:
       # GOTRUE_EXTERNAL_GITHUB_SECRET: ${GITHUB_SECRET}
       # GOTRUE_EXTERNAL_GITHUB_REDIRECT_URI: ${API_EXTERNAL_URL}/auth/v1/callback
 
-      # GOTRUE_EXTERNAL_AZURE_ENABLED: ${AZURE_ENABLED}
-      # GOTRUE_EXTERNAL_AZURE_CLIENT_ID: ${AZURE_CLIENT_ID}
-      # GOTRUE_EXTERNAL_AZURE_SECRET: ${AZURE_SECRET}
-      # GOTRUE_EXTERNAL_AZURE_REDIRECT_URI: ${API_EXTERNAL_URL}/auth/v1/callback
+      # Microsoft / Entra ID ("azure" provider). Off unless AZURE_ENABLED=true in .env.
+      GOTRUE_EXTERNAL_AZURE_ENABLED: ${AZURE_ENABLED:-false}
+      GOTRUE_EXTERNAL_AZURE_CLIENT_ID: ${AZURE_CLIENT_ID:-}
+      GOTRUE_EXTERNAL_AZURE_SECRET: ${AZURE_SECRET:-}
+      # Single-tenant Entra: set AZURE_URL=https://login.microsoftonline.com/<tenant-id>/v2.0
+      GOTRUE_EXTERNAL_AZURE_URL: ${AZURE_URL:-https://login.microsoftonline.com/common/v2.0}
+      GOTRUE_EXTERNAL_AZURE_REDIRECT_URI: ${API_EXTERNAL_URL}/auth/v1/callback
 
       # Uncomment to configure SMS delivery (phone auth and phone MFA).
       # GOTRUE_SMS_PROVIDER: ${SMS_PROVIDER}
