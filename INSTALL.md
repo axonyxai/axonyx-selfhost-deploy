@@ -75,9 +75,11 @@ docker compose run --rm migrate
 4. `docker compose up -d auth` (recreates the auth container with the new env).
 
 ## 7. Send AI traffic through the proxy
+Get a key from **Settings → API Keys → Generate key** (or set `PROXY_API_KEY` in `.env`
+as a bootstrap), then:
 ```
 POST http://YOUR_HOST:9999/v1/chat/completions
-Authorization: Bearer <an application key, or PROXY_API_KEY>
+Authorization: Bearer <your API key>
 ```
 Governed (DLP, prompt-injection, model routing) and logged to `ai_runs`, shown in the dashboard.
 
